@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import time
 
@@ -17,27 +18,38 @@ outputs = [
 ]
 
 
+class ProcessingError(RuntimeError):
+    pass
+
+
+class LaserEggApiError(ProcessingError):
+    pass
+
+
 def get_measurement():
     rs = requests.get(f"https://api.origins-china.cn/v1/lasereggs/{device_id}?key={api_key}")
-    data = json.loads(rs.content)
+    try:
+        data = json.loads(rs.content)
+    except json.decoder.JSONDecodeError as e:
+        raise LaserEggApiError()
     return data['info.aqi']['ts'], data['info.aqi']['data']
 
 
 def process():
     ts, measurement = get_measurement()
-    print(ts, measurement)
+    logging.info(ts, measurement)
 
     for out in outputs:
         try:
             out(ts, measurement)
         except RuntimeError as e:
-            print(e)
+            logging.warning(e)
 
 
 while True:
     try:
         process()
-    except (RuntimeError, IOError) as e:
-        print(e)
+    except (RuntimeError, IOError, ProcessingError) as e:
+        logging.warning(e)
 
     time.sleep(60*5)
