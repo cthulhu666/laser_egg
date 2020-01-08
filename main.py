@@ -17,6 +17,8 @@ outputs = [
     mqtt.send
 ]
 
+logging.basicConfig(level=logging.DEBUG)
+
 
 class ProcessingError(RuntimeError):
     pass
@@ -28,6 +30,7 @@ class LaserEggApiError(ProcessingError):
 
 def get_measurement():
     rs = requests.get(f"https://api.origins-china.cn/v1/lasereggs/{device_id}?key={api_key}")
+    logging.info(f"API response: {rs.status_code}")
     try:
         data = json.loads(rs.content)
     except json.decoder.JSONDecodeError as e:
@@ -37,7 +40,7 @@ def get_measurement():
 
 def process():
     ts, measurement = get_measurement()
-    logging.info(ts, measurement)
+    logging.info(measurement)
 
     for out in outputs:
         try:
