@@ -11,6 +11,7 @@ import mqtt
 
 device_id = os.environ['LASEREGG_ID']
 api_key = os.environ['LASEREGG_KEY']
+interval_seconds = int(os.environ.get('INTERVAL_SECONDS', 60))
 
 outputs = [
     dog.send,
@@ -55,4 +56,4 @@ while True:
     except (RuntimeError, IOError, ProcessingError) as e:
         logging.warning(e)
 
-    time.sleep(60*5)
+    time.sleep(interval_seconds)
