@@ -30,7 +30,7 @@ class LaserEggApiError(ProcessingError):
 
 
 def get_measurement():
-    rs = requests.get(f"https://api.origins-china.cn/v1/lasereggs/{device_id}?key={api_key}")
+    rs = requests.get(f"https://api.kaiterra.com/v1/lasereggs/{device_id}?key={api_key}")
     logging.info(f"API response: {rs.status_code}")
     try:
         data = json.loads(rs.content)
