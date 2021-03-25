@@ -1,13 +1,14 @@
-FROM python:3.8-slim
+FROM golang:1.15.7 as build
+ENV HOME /opt/app
+COPY . $HOME
+WORKDIR $HOME
 
-RUN mkdir /app
-WORKDIR /app
+RUN go build cmd/main.go && cp ./main /go/bin/
 
-ADD Pipfile .
-ADD Pipfile.lock .
-RUN pip install --upgrade pip && \
-    pip install pipenv && \
-    pipenv install --system --deploy --ignore-pipfile
-COPY . .
+FROM debian:buster
+ENV HOME /opt/app
+WORKDIR $HOME
 
-CMD python main.py
+COPY --from=build /go/bin/ /go/bin/
+
+ENTRYPOINT ["/go/bin/main"]
