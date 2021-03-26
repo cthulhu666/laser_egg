@@ -16,6 +16,8 @@ type application struct {
 
 	datadogCh chan api.Measurement
 	mqttCh    chan api.Measurement
+
+	lastMeasurement api.Measurement
 }
 
 func main() {
@@ -69,8 +71,15 @@ func (app *application) update() error {
 	if err != nil {
 		return err
 	}
-	app.datadogCh <- m
-	app.mqttCh <- m
+
+	if m.Ts.After(app.lastMeasurement.Ts) {
+		app.datadogCh <- m
+		app.mqttCh <- m
+		app.lastMeasurement = m
+	} else {
+		log.Println("[Main] Measurement unchanged, skipping.")
+	}
+
 	return nil
 }
 
