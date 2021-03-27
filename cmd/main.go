@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/cthulhu666/laser-egg/api"
+	"github.com/cthulhu666/laser-egg/laseregg"
 	"github.com/cthulhu666/laser-egg/cmd/config"
 	"github.com/cthulhu666/laser-egg/datadog"
 	"github.com/cthulhu666/laser-egg/mqtt"
+	"github.com/cthulhu666/laser-egg/target"
 	"log"
 	"sync"
 	"time"
@@ -12,7 +13,8 @@ import (
 
 type application struct {
 	cfg     config.Configuration
-	datadog datadog.Datadog
+	datadog target.Target
+	mqtt    target.Target
 
 	datadogCh chan api.Measurement
 	mqttCh    chan api.Measurement
@@ -23,14 +25,20 @@ type application struct {
 func main() {
 	cfg := config.Load()
 
-	dd, err := datadog.New(cfg.DataDog)
+	ddClient, err := datadog.New(cfg.DataDog)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	mqttClient, err := mqtt.New(cfg.Mqtt)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	app := application{
 		cfg:       cfg,
-		datadog:   dd,
+		datadog:   ddClient,
+		mqtt:      mqttClient,
 		datadogCh: make(chan api.Measurement, 1),
 		mqttCh:    make(chan api.Measurement, 1),
 	}
@@ -55,11 +63,11 @@ func main() {
 	var wg sync.WaitGroup
 
 	goWithWg(func() error {
-		return datadog.HandleMeasurement(app.datadog, app.datadogCh)
+		return HandleMeasurement(app.datadog, app.datadogCh)
 	}, "Datadog", &wg)
 
 	goWithWg(func() error {
-		return mqtt.HandleMeasurement(nil, app.mqttCh)
+		return HandleMeasurement(app.mqtt, app.mqttCh)
 	}, "MQTT", &wg)
 
 	wg.Wait()
@@ -71,6 +79,7 @@ func (app *application) update() error {
 	if err != nil {
 		return err
 	}
+	log.Printf("[Main] Got measurement: %v", m)
 
 	if m.Ts.After(app.lastMeasurement.Ts) {
 		app.datadogCh <- m
@@ -92,4 +101,19 @@ func goWithWg(f func() error, description string, wg *sync.WaitGroup) {
 		}
 		log.Printf("%s exited", description)
 	}()
+}
+
+func HandleMeasurement(t target.Target, ch <-chan api.Measurement) error {
+	for {
+		select {
+		case m, ok := <-ch:
+			if !ok {
+				log.Panic("ch closed?")
+			}
+			err := t.Send(m)
+			if err != nil {
+				log.Printf("failed to send data: %v", err)
+			}
+		}
+	}
 }

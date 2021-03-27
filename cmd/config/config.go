@@ -27,6 +27,8 @@ type LaserEgg struct {
 type Mqtt struct {
 	Username string `env:"MQTT_USERNAME"`
 	Password string `env:"MQTT_PASSWORD"`
+	Topic	 string `env:"MQTT_TOPIC,default=laseregg"`
+	Debug    bool	`env:"MQTT_DEBUG,default=false"`
 }
 
 func Load() Configuration {

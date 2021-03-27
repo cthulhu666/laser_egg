@@ -1,20 +1,17 @@
 package datadog
 
 import (
-	"github.com/cthulhu666/laser-egg/api"
 	"github.com/cthulhu666/laser-egg/cmd/config"
+	"github.com/cthulhu666/laser-egg/laseregg"
+	"github.com/cthulhu666/laser-egg/target"
 	dd "github.com/zorkian/go-datadog-api"
 )
-
-type Datadog interface {
-	Send(measurement api.Measurement) error
-}
 
 type datadog struct {
 	*dd.Client
 }
 
-func New(cfg config.DataDog) (Datadog, error) {
+func New(cfg config.DataDog) (target.Target, error) {
 
 	return datadog{
 		Client: dd.NewClient(cfg.ApiKey, cfg.AppKey),

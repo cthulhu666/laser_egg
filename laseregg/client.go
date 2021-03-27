@@ -11,12 +11,12 @@ import (
 
 type Measurement struct {
 	Id   string `json:"id"`
-	Info 		`json:"info.aqi"`
+	Info `json:"info.aqi"`
 }
 
 type Info struct {
-	Ts   time.Time 	`json:"ts"`
-	Data 			`json:"data"`
+	Ts   time.Time `json:"ts"`
+	Data `json:"data"`
 }
 
 type Data struct {
