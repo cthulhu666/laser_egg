@@ -25,6 +25,8 @@ type LaserEgg struct {
 }
 
 type Mqtt struct {
+	Hostname string `env:"MQTT_HOSTNAME"`
+	Port	 int16 	`env:"MQTT_PORT"`
 	Username string `env:"MQTT_USERNAME"`
 	Password string `env:"MQTT_PASSWORD"`
 	Topic	 string `env:"MQTT_TOPIC,default=laseregg"`

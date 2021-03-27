@@ -40,7 +40,7 @@ func New(config config.Mqtt) (target.Target, error) {
 		paho.ERROR = log.New(os.Stdout, "[ERROR]", 0)
 	}
 	opts := paho.NewClientOptions().
-		AddBroker("tcp://farmer.cloudmqtt.com:12397").
+		AddBroker(fmt.Sprintf("tcp://%s:%d", config.Hostname, config.Port)).
 		SetUsername(config.Username).
 		SetPassword(config.Password)
 
