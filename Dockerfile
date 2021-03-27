@@ -1,8 +1,14 @@
-FROM python:3.8
+FROM golang:1.15.7 as build
+ENV HOME /opt/app
+COPY . $HOME
+WORKDIR $HOME
 
-RUN mkdir /app
-WORKDIR /app
-ADD . .
-RUN pip install -r requirements.txt
+RUN go build cmd/main.go && cp ./main /go/bin/
 
-CMD python main.py
+FROM debian:buster
+ENV HOME /opt/app
+WORKDIR $HOME
+
+COPY --from=build /go/bin/ /go/bin/
+
+ENTRYPOINT ["/go/bin/main"]
