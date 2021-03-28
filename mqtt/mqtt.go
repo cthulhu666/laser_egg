@@ -44,9 +44,6 @@ func New(config config.Mqtt) (target.Target, error) {
 		SetUsername(config.Username).
 		SetPassword(config.Password)
 
-	opts.SetKeepAlive(2 * time.Second)
-	opts.SetPingTimeout(1 * time.Second)
-
 	c := paho.NewClient(opts)
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
